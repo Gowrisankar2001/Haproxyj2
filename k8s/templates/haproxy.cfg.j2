@@ -53,6 +53,6 @@ backend k8s_api_backend
     option tcp-check
     default-server inter 5s fall 3 rise 2
 
-{% for item in groups['haproxy'] %}
+{% for item in groups['master'] %}
     server {{ hostvars[item]['short_name'] }} {{ hostvars[item]['ip_address'] }}:6443 check
 {% endfor %}
