@@ -51,3 +51,12 @@
     mode: '0644'
   notify: Reload HAProxy
   become: yes
+
+- name: Make sure HAPROXY Is Reloaded
+  systemd:
+    state: reloaded
+    name: haproxy
+    enabled: yes
+  become: yes
+  become_user: root
+  become_method: sudo
