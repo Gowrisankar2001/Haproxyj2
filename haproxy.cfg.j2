@@ -1,0 +1,58 @@
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    log /dev/log local0 info
+    maxconn 20000
+    chroot /var/lib/haproxy
+    pidfile /var/run/haproxy.pid
+    user haproxy
+    group haproxy
+    daemon
+
+    # Enable admin socket for control/monitoring
+    stats socket /var/lib/haproxy/stats mode 600 level admin
+
+#---------------------------------------------------------------------
+# Default settings
+#---------------------------------------------------------------------
+defaults
+    log global
+    mode tcp
+    option tcplog
+    option dontlognull
+    retries 3
+    timeout connect 10s
+    timeout client 1m
+    timeout server 1m
+    timeout check 10s
+    maxconn 20000
+
+#---------------------------------------------------------------------
+# HAProxy Stats (optional)
+#---------------------------------------------------------------------
+listen stats
+    bind :9000
+    mode http
+    stats enable
+    stats uri /stats
+    stats refresh 10s
+    stats auth admin:adminpassword 
+
+#---------------------------------------------------------------------
+# Kubernetes API Server (HA)
+#---------------------------------------------------------------------
+frontend k8s_api_frontend
+    bind *:6443
+    mode tcp
+    default_backend k8s_api_backend
+
+backend k8s_api_backend
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    default-server inter 5s fall 3 rise 2
+
+{% for item in groups['masters'] %}
+    server {{ hostvars[item]['short_name'] }} {{ hostvars[item]['ip_address'] }}:6443 check
+{% endfor %}
