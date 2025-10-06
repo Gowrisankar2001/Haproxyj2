@@ -1,0 +1,62 @@
+---
+# tasks file for configure HAProxy for vanilla Kubernetes
+
+- name: Install HAProxy
+  yum:
+    name: haproxy
+    state: latest
+  become: yes
+
+- name: Enable and start HAProxy
+  systemd:
+    name: haproxy
+    enabled: yes
+    state: started
+  become: yes
+
+- name: Open port 6443/TCP (Kubernetes API) on public zone
+  firewalld:
+    port: 6443/tcp
+    permanent: yes
+    zone: public
+    state: enabled
+    immediate: yes
+  become: yes
+
+- name: Open port 6443/TCP on internal zone
+  firewalld:
+    port: 6443/tcp
+    permanent: yes
+    zone: internal
+    state: enabled
+    immediate: yes
+  become: yes
+
+# Optional: open port 9000 for HAProxy stats interface (browser access)
+- name: Open port 9000/TCP for HAProxy stats
+  firewalld:
+    port: 9000/tcp
+    permanent: yes
+    zone: public
+    state: enabled
+    immediate: yes
+  become: yes
+
+- name: Deploy HAProxy configuration
+  template:
+    src: templates/haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload HAProxy
+  become: yes
+  
+- name: Make sure HAPROXY Is Reloaded
+  systemd:
+    state: reloaded
+    name: haproxy
+    enabled: yes
+  become: yes
+  become_user: root
+  become_method: sudo
