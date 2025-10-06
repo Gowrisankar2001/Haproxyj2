@@ -1,0 +1,9 @@
+---
+- name: Reload HAProxy
+  systemd:
+    state: reloaded
+    name: haproxy
+    enabled: yes
+  become: yes
+  become_user: root
+  become_method: sudo

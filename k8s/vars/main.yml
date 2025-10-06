@@ -1,0 +1,5 @@
+---
+# vars file for k8s/
+# Example: host_vars/master01.yml
+short_name: slave
+ip_address: 10.70.64.216
