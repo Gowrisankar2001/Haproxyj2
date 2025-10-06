@@ -1,0 +1,8 @@
+---
+- name: Configure HAProxy on Load Balancer Node
+  hosts: haproxy
+  become: yes
+  become_method: sudo
+
+  roles:
+    - k8s
